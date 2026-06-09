@@ -1,0 +1,143 @@
+services:
+
+#====================================================
+#БД + Kafka
+#====================================================
+
+#Поднятие БД для заказов
+  order-db:
+    image: postgres:16-alpine
+    container_name: order-postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: order_secure_pass
+      POSTGRES_DB: order_db
+    ports:
+      - "5431:5432"
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    networks:
+      - mygeneral-network
+
+#Поднятие БД для платежей
+  payment-db:
+    image: postgres:16-alpine
+    container_name: payment-postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: payment_secure_pass
+      POSTGRES_DB: payment_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+    networks:
+      - mygeneral-network
+
+#Поднятие Kafka Raft (разобраться по лучше, а то жесть голова кипит)
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - mygeneral-network
+  
+#Поднятие Kafka UI
+#Панель управления: http://localhost:8080
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+    depends_on:
+      - kafka
+    networks:
+      - mygeneral-network
+
+#====================================================
+#Микросервисы
+#====================================================
+
+#Микросервис для заказов
+  order-service:
+    image: order-service:latest
+    container_name: order-microservice
+    build:
+      context: .
+      dockerfile: OrderService/OrderService.WebApi/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=order-db;Database=order_db;Username=postgres;Password=order_secure_pass
+      - IntegrationSettings__PaymentServiceUrl=http://payment-service:8080/
+      - KafkaSettings__BootstrapServers=kafka:29092
+    depends_on:
+      - order-db
+      - kafka
+    networks:
+      - mygeneral-network
+
+#Микросервис для платежей
+  payment-service:
+    image: payment-service:latest
+    container_name: payment-microservice
+    build:
+      context: .
+      dockerfile: PaymentService/PaymentService.WebApi/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=payment-db;Database=payment_db;Username=postgres;Password=payment_secure_pass
+      - KafkaSettings__BootstrapServers=kafka:29092
+    depends_on:
+      - payment-db
+      - kafka
+    networks:
+      - mygeneral-network
+
+#Микросервис для уведомлений
+  notification-service:
+    image: notification-service:latest
+    container_name: notification-microservice
+    build:
+      context: .
+      dockerfile: NotificationService/NotificationService.WebApi/Dockerfile
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - KafkaSettings__BootstrapServers=kafka:29092
+    depends_on:
+      - kafka
+    networks:
+      - mygeneral-network
+
+
+#====================================================
+#Сети и тома для данных
+#====================================================
+
+networks:
+  mygeneral-network:
+    driver: bridge
+
+volumes:
+  order_db_data:
+  payment_db_data:
