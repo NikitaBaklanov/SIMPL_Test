@@ -35,7 +35,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="docker-compose.yaml" />
-    <None Include="OrderService\OrderService.WebApi\Dockerfile" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
@@ -45,6 +44,7 @@
     <Folder Include="NotificationService\NotificationService.WebApi\" />
     <Folder Include="OrderService\OrderService.DataAccess.Postgres\" />
     <Folder Include="OrderService\OrderService.Tests\" />
+    <Folder Include="OrderService\OrderService.WebApi\" />
     <Folder Include="PaymentService\PaymentService.DataAccess.Postgres\" />
     <Folder Include="PaymentService\PaymentService.Tests\" />
     <Folder Include="PaymentService\PaymentService.WebApi\" />
