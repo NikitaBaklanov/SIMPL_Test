@@ -12,6 +12,8 @@ public class CreatePaymentRequest
 {
     public long OrderId { get; set; }
     public decimal Price { get; set; }
+    public string EmailClient { get; set; } = string.Empty;
+    public string PhoneNumber { get; set; } = string.Empty;
 }
 
 public class CreatePaymentResponse

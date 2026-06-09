@@ -15,5 +15,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Price).HasPrecision(18, 2).IsRequired();
         builder.Property(p => p.Status).IsRequired();
         builder.Property(p => p.DateCreate).IsRequired();
+        builder.Property(p => p.EmailClient).IsRequired().HasMaxLength(256);
+        builder.Property(p => p.PhoneNumber).IsRequired().HasMaxLength(20);
     }
 }

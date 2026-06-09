@@ -28,13 +28,7 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, OrderRespo
         _context.Orders.Add(order);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var paymentRequest = new CreatePaymentRequest
-        {
-            OrderId = order.Id,
-            Price = order.Price,
-            EmailClient = order.EmailClient,
-            PhoneNumber = order.PhoneNumber
-        };
+        var paymentRequest = new CreatePaymentRequest { OrderId = order.Id, Price = order.Price };
         try
         {
             var response = await _paymentApi.CreatePaymentAsync(paymentRequest);
