@@ -34,7 +34,7 @@ services:
     networks:
       - mygeneral-network
 
-#Поднятие Kafka Raft (разобраться по лучше, а то жесть голова кипит)
+#Поднятие Kafka Raft
   kafka:
     image: apache/kafka:latest
     container_name: kafka
