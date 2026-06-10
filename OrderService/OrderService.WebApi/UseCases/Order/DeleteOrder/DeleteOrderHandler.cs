@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrderService.DataAccess.Postgres;
-using OrderServiceWebApp.UseCases.DeleteOrder;
+using OrderService.WebApi.UseCases.Orders.DeleteOrder;
 
 namespace OrderService.WebApi.UseCases.Orders.DeleteOrder;
 

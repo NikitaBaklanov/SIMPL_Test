@@ -1,10 +1,9 @@
 services:
 
-#====================================================
-#БД + Kafka
-#====================================================
+  # ====================================================
+  # БД + Kafka + Kafka UI
+  # ====================================================
 
-#Поднятие БД для заказов
   order-db:
     image: postgres:16-alpine
     container_name: order-postgres-db
@@ -16,10 +15,14 @@ services:
       - "5431:5432"
     volumes:
       - order_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d order_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - mygeneral-network
 
-#Поднятие БД для платежей
   payment-db:
     image: postgres:16-alpine
     container_name: payment-postgres-db
@@ -31,10 +34,14 @@ services:
       - "5432:5432"
     volumes:
       - payment_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d payment_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - mygeneral-network
 
-#Поднятие Kafka Raft
   kafka:
     image: apache/kafka:latest
     container_name: kafka
@@ -53,9 +60,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - mygeneral-network
-  
-#Поднятие Kafka UI
-#Панель управления: http://localhost:8080
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -69,11 +74,27 @@ services:
     networks:
       - mygeneral-network
 
-#====================================================
-#Микросервисы
-#====================================================
+  # Инициализация топика Kafka (создание payment-events)
+  kafka-init:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-init
+    depends_on:
+      kafka:
+        condition: service_started
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka to be ready...' &&
+        sleep 10 &&
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payment-events --partitions 1 --replication-factor 1 &&
+        echo 'Topic payment-events created.'
+      "
+    networks:
+      - mygeneral-network
 
-#Микросервис для заказов
+  # ====================================================
+  # Микросервисы
+  # ====================================================
+
   order-service:
     image: order-service:latest
     container_name: order-microservice
@@ -88,12 +109,13 @@ services:
       - IntegrationSettings__PaymentServiceUrl=http://payment-service:8080/
       - KafkaSettings__BootstrapServers=kafka:29092
     depends_on:
-      - order-db
-      - kafka
+      order-db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
       - mygeneral-network
 
-#Микросервис для платежей
   payment-service:
     image: payment-service:latest
     container_name: payment-microservice
@@ -107,12 +129,13 @@ services:
       - ConnectionStrings__DefaultConnection=Host=payment-db;Database=payment_db;Username=postgres;Password=payment_secure_pass
       - KafkaSettings__BootstrapServers=kafka:29092
     depends_on:
-      - payment-db
-      - kafka
+      payment-db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
       - mygeneral-network
 
-#Микросервис для уведомлений
   notification-service:
     image: notification-service:latest
     container_name: notification-microservice
@@ -125,14 +148,14 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - KafkaSettings__BootstrapServers=kafka:29092
     depends_on:
-      - kafka
+      kafka-init:
+        condition: service_completed_successfully
     networks:
       - mygeneral-network
 
-
-#====================================================
-#Сети и тома для данных
-#====================================================
+# ====================================================
+# Сети и тома
+# ====================================================
 
 networks:
   mygeneral-network:

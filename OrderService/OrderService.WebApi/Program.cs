@@ -24,7 +24,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 //MediatR
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
-
 //AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 
@@ -49,7 +48,10 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
+    if (dbContext.Database.GetPendingMigrations().Any())
+    {
+        dbContext.Database.Migrate();
+    }
 }
 
 if (app.Environment.IsDevelopment())
