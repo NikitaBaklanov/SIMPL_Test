@@ -1,9 +1,9 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaymentService.WebApi.Models;
-using PaymentService.WebApi.UseCases.Payments.CreateOrder;
-using PaymentService.WebApi.UseCases.Payments.GetOrder;
-using PaymentService.WebApi.UseCases.Payments.DeleteOrder;
+using PaymentService.WebApi.UseCases.Payments.CreatePayment;
+using PaymentService.WebApi.UseCases.Payments.GetPayment;
+using PaymentService.WebApi.UseCases.Payments.UpdatePaymentStatus;
 
 namespace PaymentService.WebApi.Controllers;
 
@@ -12,20 +12,32 @@ namespace PaymentService.WebApi.Controllers;
 public class PaymentsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    public PaymentsController(IMediator mediator) => _mediator = mediator;
+
+    public PaymentsController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
 
     [HttpPost("create")]
-    public async Task<ActionResult<CreatePaymentResponse>> Create([FromBody] CreatePaymentCommand command)
-        => Ok(await _mediator.Send(command));
+    public async Task<ActionResult<CreatePaymentResponse>> CreatePayment([FromBody] CreatePaymentRequest request)
+    {
+        var command = new CreatePaymentCommand(request.OrderId, request.Price, request.EmailClient, request.PhoneNumber);
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
 
     [HttpPut("updateStatus/{paymentId}/{statusId}")]
-    public async Task<IActionResult> UpdateStatus(long paymentId, int statusId)
+    public async Task<IActionResult> UpdatePaymentStatus(long paymentId, int statusId)
     {
-        await _mediator.Send(new UpdatePaymentStatusCommand(paymentId, statusId == 1));
-        return Ok();
+        var isPaid = statusId == 1;
+        await _mediator.Send(new UpdatePaymentStatusCommand(paymentId, isPaid));
+        return Ok(new { message = "Status updated" });
     }
 
     [HttpGet("get/{paymentId}")]
-    public async Task<ActionResult<PaymentResponse>> Get(long paymentId)
-        => Ok(await _mediator.Send(new GetPaymentQuery(paymentId)));
+    public async Task<ActionResult<PaymentResponse>> GetPayment(long paymentId)
+    {
+        var result = await _mediator.Send(new GetPaymentQuery(paymentId));
+        return Ok(result);
+    }
 }

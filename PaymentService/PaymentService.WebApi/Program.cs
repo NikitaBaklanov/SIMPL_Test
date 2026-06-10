@@ -1,15 +1,49 @@
+using FluentValidation;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using PaymentService.DataAccess.Postgres;
+using PaymentService.WebApi.GlobalExceptionMiddleware;
+using PaymentService.WebApi.Kafka;
+using PaymentService.WebApi.Mappings;
+using PaymentService.WebApi.UseCases.Payments.CreatePayment;
+using System.Reflection;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// Add services
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var app = builder.Build();
+// Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure the HTTP request pipeline.
+// MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<CreatePaymentCommandValidator>();
+// Optional: add validation pipeline behavior
+// builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+// AutoMapper
+builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
+
+// Kafka Publisher (singleton)
+builder.Services.AddSingleton<KafkaEventPublisher>();
+
+var app = builder.Build();
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Apply migrations automatically
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    dbContext.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -17,9 +51,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

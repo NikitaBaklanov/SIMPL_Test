@@ -1,25 +1,39 @@
+using NotificationService.WebApi.Hubs;
+using NotificationService.WebApi.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<KafkaPaymentConsumer>();
+
+// CORS для тестирования из браузера
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
+app.MapHub<NotificationHub>("/notificationHub");
 
-app.UseAuthorization();
-
-app.MapControllers();
+// Эндпоинт для проверки работоспособности
+app.MapGet("/health", () => "Notification Service is running");
 
 app.Run();

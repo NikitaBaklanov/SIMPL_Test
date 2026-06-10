@@ -1,0 +1,5 @@
+﻿using MediatR;
+
+namespace PaymentService.WebApi.UseCases.Payments.UpdatePaymentStatus;
+
+public record UpdatePaymentStatusCommand(long PaymentId, bool IsPaid) : IRequest;
