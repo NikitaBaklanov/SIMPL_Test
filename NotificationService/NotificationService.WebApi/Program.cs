@@ -3,37 +3,51 @@ using NotificationService.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Контроллеры (опционально, для health check)
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// SignalR
 builder.Services.AddSignalR();
+
+// Фоновый сервис для потребления Kafka
 builder.Services.AddHostedService<KafkaPaymentConsumer>();
 
-// CORS для тестирования из браузера
+// Настройка CORS для SignalR (разрешаем любые источники с credentials)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("SignalRCors", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();              // необходимо для SignalR
     });
 });
 
 var app = builder.Build();
 
+// Настройка конвейера HTTP-запросов
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
-app.UseHttpsRedirection();
-app.MapHub<NotificationHub>("/notificationHub");
+// Перенаправление на HTTPS
+// app.UseHttpsRedirection();
+
+// Используем CORS
+app.UseCors("SignalRCors");
 
 // Эндпоинт для проверки работоспособности
-app.MapGet("/health", () => "Notification Service is running");
+app.MapGet("/health", () => Results.Ok(new { status = "Notification Service is running" }));
+
+// SignalR Hub
+app.MapHub<NotificationHub>("/notificationHub");
+
+// Опционально: контроллеры (если есть)
+app.MapControllers();
 
 app.Run();

@@ -47,6 +47,8 @@ public class KafkaPaymentConsumer : BackgroundService
                     if (paymentEvent != null)
                     {
                         _logger.LogInformation("Received payment event for Order {OrderId}, email {Email}", paymentEvent.OrderId, paymentEvent.EmailClient);
+
+                        // Отправляем уведомление через SignalR
                         await _hubContext.Clients.Group(paymentEvent.EmailClient)
                             .SendAsync("PaymentNotification", new
                             {
@@ -55,6 +57,10 @@ public class KafkaPaymentConsumer : BackgroundService
                                 status = "Paid",
                                 paidAt = paymentEvent.PaidAt
                             });
+
+                        // Логирование
+                        _logger.LogInformation("Sending payment notification to group {EmailClient} for order {OrderId}",
+                            paymentEvent.EmailClient, paymentEvent.OrderId);
                     }
                 }
             }
