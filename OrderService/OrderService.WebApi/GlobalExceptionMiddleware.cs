@@ -2,6 +2,11 @@
 
 namespace OrderService.WebApi.GlobalExceptionMiddleware;
 
+
+/// <summary>
+/// Middleware глобальной обработки исключений.
+/// Преобразует KeyNotFoundException в 404, остальные исключения — в 500.
+/// </summary>
 public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;

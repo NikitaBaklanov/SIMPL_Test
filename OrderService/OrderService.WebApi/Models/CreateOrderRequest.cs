@@ -1,5 +1,8 @@
 ﻿namespace OrderService.WebApi.Models;
 
+/// <summary>
+/// Модель запроса на создание заказа, приходящая от клиента.
+/// </summary>
 public class CreateOrderRequest
 {
     public long ProductId { get; set; }

@@ -2,6 +2,9 @@
 
 namespace OrderService.WebApi.PaymentApi;
 
+/// <summary>
+/// Refit-клиент для взаимодействия с PaymentService.
+/// </summary>
 public interface IPaymentApi
 {
     [Post("/api/payments/create")]

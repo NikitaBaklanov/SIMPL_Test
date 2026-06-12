@@ -4,6 +4,9 @@ using OrderService.WebApi.Models;
 
 namespace OrderService.WebApi.Mappings;
 
+/// <summary>
+/// Профиль AutoMapper для отображения между CreateOrderRequest/Order и Order/OrderResponse.
+/// </summary>
 public class OrderProfile : Profile
 {
     public OrderProfile()

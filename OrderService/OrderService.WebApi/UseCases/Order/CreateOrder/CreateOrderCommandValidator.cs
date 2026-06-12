@@ -2,6 +2,10 @@
 
 namespace OrderService.WebApi.UseCases.Orders.CreateOrder;
 
+/// <summary>
+/// Валидатор команды создания заказа.
+/// Проверяет корректность всех полей запроса.
+/// </summary>
 public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 {
     public CreateOrderCommandValidator()

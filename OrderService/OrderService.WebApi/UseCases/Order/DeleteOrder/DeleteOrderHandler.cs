@@ -5,6 +5,9 @@ using OrderService.WebApi.UseCases.Orders.DeleteOrder;
 
 namespace OrderService.WebApi.UseCases.Orders.DeleteOrder;
 
+/// <summary>
+/// Обработчик удаления заказа.
+/// </summary>
 public class DeleteOrderHandler : IRequestHandler<DeleteOrderCommand>
 {
     private readonly AppDbContext _context;
@@ -22,7 +25,7 @@ public class DeleteOrderHandler : IRequestHandler<DeleteOrderCommand>
         if (order == null)
         {
             _logger.LogWarning("Order {Id} not found for deletion", request.Id);
-            throw new Exception($"Order with id {request.Id} not found");
+            throw new KeyNotFoundException($"Order with id {request.Id} not found");
         }
 
         _context.Orders.Remove(order);

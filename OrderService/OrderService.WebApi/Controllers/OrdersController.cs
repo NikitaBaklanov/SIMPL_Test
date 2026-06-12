@@ -7,6 +7,10 @@ using OrderService.WebApi.UseCases.Orders.DeleteOrder;
 
 namespace OrderService.WebApi.Controllers;
 
+
+/// <summary>
+/// Контроллер для работы с заказами.
+/// </summary>
 [ApiController]
 [Route("api/orders")]
 public class OrdersController : ControllerBase
@@ -18,6 +22,9 @@ public class OrdersController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Создать новый заказ.
+    /// </summary>
     [HttpPost("create")]
     public async Task<ActionResult<OrderResponse>> CreateOrder([FromBody] CreateOrderRequest request)
     {
@@ -26,6 +33,10 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+
+    /// <summary>
+    /// Получить заказ по идентификатору.
+    /// </summary>
     [HttpGet("{id}")]
     public async Task<ActionResult<OrderResponse>> GetOrder(long id)
     {
@@ -34,6 +45,10 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
+
+    /// <summary>
+    /// Удалить заказ по идентификатору.
+    /// </summary>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrder(long id)
     {

@@ -1,5 +1,8 @@
 ﻿namespace OrderService.DataAccess.Postgres.Models;
 
+/// <summary>
+/// Модель заказа для базы данных.
+/// </summary>
 public class Order
 {
     public long Id { get; set; }

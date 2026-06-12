@@ -4,6 +4,9 @@ using OrderService.DataAccess.Postgres.Models;
 
 namespace OrderService.DataAccess.Postgres.Configurations;
 
+/// <summary>
+/// Конфигурация сущности Order для Entity Framework Core (Fluent API).
+/// </summary>
 public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
     public void Configure(EntityTypeBuilder<Order> builder)

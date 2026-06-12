@@ -30,7 +30,7 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 //FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderCommandValidator>();
 
-//Валидация
+//Поведение валидации
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 //Refit client for PaymentService

@@ -3,6 +3,10 @@ using MediatR;
 
 namespace OrderService.WebApi.Pipeline;
 
+/// <summary>
+/// Поведение MediatR для автоматической валидации запросов и команд.
+/// Выбрасывает ValidationException, если модель невалидна.
+/// </summary>
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {

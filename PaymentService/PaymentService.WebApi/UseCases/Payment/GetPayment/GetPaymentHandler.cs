@@ -6,6 +6,9 @@ using PaymentService.WebApi.Models;
 
 namespace PaymentService.WebApi.UseCases.Payments.GetPayment;
 
+/// <summary>
+/// Обработчик запроса на получение информации о платеже.
+/// </summary>
 public class GetPaymentHandler : IRequestHandler<GetPaymentQuery, PaymentResponse>
 {
     private readonly AppDbContext _context;

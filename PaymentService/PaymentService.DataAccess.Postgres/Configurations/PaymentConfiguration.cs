@@ -4,6 +4,9 @@ using PaymentService.DataAccess.Postgres.Models;
 
 namespace PaymentService.DataAccess.Postgres.Configurations;
 
+/// <summary>
+/// Конфигурация сущности Payment для EF Core.
+/// </summary>
 public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
     public void Configure(EntityTypeBuilder<Payment> builder)

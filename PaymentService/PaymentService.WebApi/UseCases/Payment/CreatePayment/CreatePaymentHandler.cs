@@ -5,6 +5,10 @@ using PaymentService.WebApi.Models;
 
 namespace PaymentService.WebApi.UseCases.Payments.CreatePayment;
 
+
+/// <summary>
+/// Обработчик создания платежа. Сохраняет запись в БД со статусом false (не оплачен).
+/// </summary>
 public class CreatePaymentHandler : IRequestHandler<CreatePaymentCommand, CreatePaymentResponse>
 {
     private readonly AppDbContext _context;

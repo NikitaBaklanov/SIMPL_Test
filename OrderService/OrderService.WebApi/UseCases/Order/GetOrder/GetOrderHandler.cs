@@ -6,6 +6,9 @@ using OrderService.WebApi.Models;
 
 namespace OrderService.WebApi.UseCases.Orders.GetOrder;
 
+/// <summary>
+/// Обработчик запроса на получение заказа по идентификатору.
+/// </summary>
 public class GetOrderHandler : IRequestHandler<GetOrderQuery, OrderResponse>
 {
     private readonly AppDbContext _context;
@@ -19,9 +22,9 @@ public class GetOrderHandler : IRequestHandler<GetOrderQuery, OrderResponse>
 
     public async Task<OrderResponse> Handle(GetOrderQuery request, CancellationToken cancellationToken)
     {
-        var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == request.Id, cancellationToken);
+        var order = await _context.Orders.FindAsync(request.Id);
         if (order == null)
-            throw new Exception($"Order with id {request.Id} not found");
+            throw new KeyNotFoundException($"Order with id {request.Id} not found");
 
         return _mapper.Map<OrderResponse>(order);
     }

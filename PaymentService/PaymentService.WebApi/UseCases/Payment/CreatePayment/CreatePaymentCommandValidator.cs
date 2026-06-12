@@ -2,6 +2,9 @@
 
 namespace PaymentService.WebApi.UseCases.Payments.CreatePayment;
 
+/// <summary>
+/// Валидатор команды создания платежа.
+/// </summary>
 public class CreatePaymentCommandValidator : AbstractValidator<CreatePaymentCommand>
 {
     public CreatePaymentCommandValidator()

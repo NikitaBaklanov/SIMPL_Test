@@ -7,6 +7,11 @@ using OrderService.WebApi.Models;
 
 namespace OrderService.WebApi.UseCases.Orders.CreateOrder;
 
+/// <summary>
+/// Обработчик команды создания заказа.
+/// Сохраняет заказ в БД, вызывает PaymentService для резервирования оплаты,
+/// обновляет статус заказа в зависимости от результата.
+/// </summary>
 public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, OrderResponse>
 {
     private readonly AppDbContext _context;
@@ -38,12 +43,13 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, OrderRespo
         try
         {
             var response = await _paymentApi.CreatePaymentAsync(paymentRequest);
+
             if (!response.Success)
             {
                 _logger.LogWarning("Payment failed for order {OrderId}: {Message}", order.Id, response.Message);
                 order.Status = "PaymentFailed";
                 await _context.SaveChangesAsync(cancellationToken);
-                throw new Exception($"Payment service error: {response.Message}");
+                throw new InvalidOperationException($"Payment service error: {response.Message}");
             }
 
             order.Status = "PaymentReserved";

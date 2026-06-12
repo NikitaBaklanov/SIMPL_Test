@@ -7,6 +7,10 @@ using PaymentService.WebApi.UseCases.Payments.UpdatePaymentStatus;
 
 namespace PaymentService.WebApi.Controllers;
 
+
+/// <summary>
+/// Контроллер для управления платежами.
+/// </summary>
 [ApiController]
 [Route("api/payments")]
 public class PaymentsController : ControllerBase
@@ -18,6 +22,9 @@ public class PaymentsController : ControllerBase
         _mediator = mediator;
     }
 
+    /// <summary>
+    /// Создать новый платеж.
+    /// </summary>
     [HttpPost("create")]
     public async Task<ActionResult<CreatePaymentResponse>> CreatePayment([FromBody] CreatePaymentRequest request)
     {
@@ -26,6 +33,9 @@ public class PaymentsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Обновляем статус платежа по идентификатору.
+    /// </summary>
     [HttpPut("updateStatus/{paymentId}/{statusId}")]
     public async Task<IActionResult> UpdatePaymentStatus(long paymentId, int statusId)
     {
@@ -34,6 +44,9 @@ public class PaymentsController : ControllerBase
         return Ok(new { message = "Status updated" });
     }
 
+    /// <summary>
+    /// Получить информацию о платеже по идентификатору.
+    /// </summary>
     [HttpGet("get/{paymentId}")]
     public async Task<ActionResult<PaymentResponse>> GetPayment(long paymentId)
     {

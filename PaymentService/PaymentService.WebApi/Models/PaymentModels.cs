@@ -1,6 +1,8 @@
 ﻿namespace PaymentService.WebApi.Models;
 
-// Запрос на создание платежа (приходит из OrderService)
+/// <summary>
+/// Запрос на создание платежа (приходит из OrderService).
+/// </summary>
 public class CreatePaymentRequest
 {
     public long OrderId { get; set; }
@@ -9,7 +11,9 @@ public class CreatePaymentRequest
     public string PhoneNumber { get; set; } = string.Empty;
 }
 
-// Ответ после создания
+/// <summary>
+/// Ответ на создание платежа.
+/// </summary>
 public class CreatePaymentResponse
 {
     public long PaymentId { get; set; }
@@ -17,7 +21,9 @@ public class CreatePaymentResponse
     public string Message { get; set; } = string.Empty;
 }
 
-// Ответ для GET /get/{paymentId}
+/// <summary>
+/// Ответ при получении информации о платеже (GET).
+/// </summary>
 public class PaymentResponse
 {
     public long Id { get; set; }

@@ -6,6 +6,11 @@ using PaymentService.WebApi.Models;
 
 namespace PaymentService.WebApi.UseCases.Payments.UpdatePaymentStatus;
 
+
+/// <summary>
+/// Обработчик обновления статуса платежа.
+/// При успешной оплате публикует событие в Kafka.
+/// </summary>
 public class UpdatePaymentStatusHandler : IRequestHandler<UpdatePaymentStatusCommand>
 {
     private readonly AppDbContext _context;

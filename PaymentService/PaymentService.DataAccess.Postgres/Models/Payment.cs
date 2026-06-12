@@ -1,5 +1,8 @@
 ﻿namespace PaymentService.DataAccess.Postgres.Models;
 
+/// <summary>
+/// Модель платежа в базе данных.
+/// </summary>
 public class Payment
 {
     public long Id { get; set; }

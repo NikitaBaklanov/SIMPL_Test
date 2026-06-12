@@ -5,7 +5,7 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Копируем csproj (у NotificationService нет DataAccess)
+# Копируем csproj
 COPY ["NotificationService/NotificationService.WebApi/NotificationServiceWebApp.csproj", "NotificationService/NotificationService.WebApi/"]
 RUN dotnet restore "NotificationService/NotificationService.WebApi/NotificationServiceWebApp.csproj"
 

@@ -1,5 +1,8 @@
 ﻿namespace OrderService.WebApi.Models;
 
+/// <summary>
+/// Ответ API при получении информации о заказе.
+/// </summary>
 public class OrderResponse
 {
     public long Id { get; set; }

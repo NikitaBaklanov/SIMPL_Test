@@ -6,12 +6,17 @@ using NotificationService.WebApi.Models;
 
 namespace NotificationService.WebApi.Services;
 
+/// <summary>
+/// Фоновый сервис для чтения событий из Kafka (топик payment-events)
+/// и рассылки уведомлений клиентам через SignalR.
+/// </summary>
 public class KafkaPaymentConsumer : BackgroundService
 {
     private readonly IConsumer<Ignore, string> _consumer;
     private readonly IHubContext<NotificationHub> _hubContext;
     private readonly ILogger<KafkaPaymentConsumer> _logger;
     private readonly string _topic = "payment-events";
+    private bool _disposed = false;
 
     public KafkaPaymentConsumer(IConfiguration configuration, IHubContext<NotificationHub> hubContext, ILogger<KafkaPaymentConsumer> logger)
     {
@@ -28,14 +33,24 @@ public class KafkaPaymentConsumer : BackgroundService
         _logger = logger;
     }
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    /// <summary>
+    /// Запуск consumer'а при старте сервиса.
+    /// </summary>
+    public override Task StartAsync(CancellationToken cancellationToken)
     {
         _consumer.Subscribe(_topic);
-        return Task.Run(() => ConsumeLoop(stoppingToken), stoppingToken);
+        _logger.LogInformation("Subscribed to topic {Topic}", _topic);
+        return base.StartAsync(cancellationToken);
     }
 
-    private async Task ConsumeLoop(CancellationToken stoppingToken)
+    /// <summary>
+    /// Основной цикл обработки сообщений.
+    /// </summary>
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Освобождаем поток, чтобы не блокировать запуск
+        await Task.Yield();
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -46,9 +61,10 @@ public class KafkaPaymentConsumer : BackgroundService
                     var paymentEvent = JsonSerializer.Deserialize<PaymentCompletedEvent>(consumeResult.Message.Value);
                     if (paymentEvent != null)
                     {
-                        _logger.LogInformation("Received payment event for Order {OrderId}, email {Email}", paymentEvent.OrderId, paymentEvent.EmailClient);
+                        _logger.LogInformation("Received payment event for Order {OrderId}, email {Email}",
+                            paymentEvent.OrderId, paymentEvent.EmailClient);
 
-                        // Отправляем уведомление через SignalR
+                        // Отправляем уведомление через SignalR всем клиентам, подписанным на группу email
                         await _hubContext.Clients.Group(paymentEvent.EmailClient)
                             .SendAsync("PaymentNotification", new
                             {
@@ -58,14 +74,18 @@ public class KafkaPaymentConsumer : BackgroundService
                                 paidAt = paymentEvent.PaidAt
                             });
 
-                        // Логирование
-                        _logger.LogInformation("Sending payment notification to group {EmailClient} for order {OrderId}",
+                        _logger.LogInformation("Payment notification sent to group {EmailClient} for order {OrderId}",
                             paymentEvent.EmailClient, paymentEvent.OrderId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Failed to deserialize Kafka message: {RawValue}", consumeResult.Message.Value);
                     }
                 }
             }
             catch (OperationCanceledException)
             {
+                // Нормальная остановка
                 break;
             }
             catch (Exception ex)
@@ -76,10 +96,23 @@ public class KafkaPaymentConsumer : BackgroundService
         }
     }
 
-    public override void Dispose()
+    /// <summary>
+    /// Остановка consumer'а при завершении сервиса.
+    /// </summary>
+    public override Task StopAsync(CancellationToken cancellationToken)
     {
         _consumer.Close();
-        _consumer.Dispose();
+        _logger.LogInformation("Kafka consumer closed");
+        return base.StopAsync(cancellationToken);
+    }
+
+    public override void Dispose()
+    {
+        if (!_disposed)
+        {
+            _consumer.Dispose();
+            _disposed = true;
+        }
         base.Dispose();
     }
 }
