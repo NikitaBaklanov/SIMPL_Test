@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SignalR Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+</head>
+<body>
+    <h2>Payment notifications</h2>
+    <input type="text" id="email" value="test@example.com" />
+    <button onclick="subscribe()">Subscribe</button>
+    <ul id="messages"></ul>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("http://localhost:5003/NotificationHub")
+            .build();
+
+        connection.on("PaymentNotification", (data) => {
+            const li = document.createElement("li");
+            li.textContent = `Order ${data.orderId} paid: ${data.price} at ${data.paidAt}`;
+            document.getElementById("messages").appendChild(li);
+        });
+
+        async function subscribe() {
+            await connection.start();
+            await connection.invoke("Subscribe", document.getElementById("email").value);
+            alert("Subscribed to notifications");
+        }
+    </script>
+</body>
+</html>

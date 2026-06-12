@@ -16,6 +16,9 @@ obj/
 *.pidb
 *.pdb
 
+
+**/*.[Tt]ests/
+**/*.[Tt]est/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 *.trx
